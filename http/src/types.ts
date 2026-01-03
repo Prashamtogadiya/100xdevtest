@@ -7,4 +7,7 @@ export const SignupSchema = z.object({
     role :z.enum(["teacher","student"])
 }) 
 
- 
+export const SingInSchema = z.object({
+    email:z.email(),
+    password:z.string()
+})
