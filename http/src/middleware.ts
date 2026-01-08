@@ -11,7 +11,7 @@ export const authMiddleware = async(req:Request,res:Response, next:NextFunction)
     console.log(typeof token );
     
     try{
-        const {userId,role}= await jwt.verify(token,process.env.JWT_SECRETKEY!) as JwtPayload 
+        const {userId,role}= await jwt.verify(token,process.env.JWT_SECRETKEY!) as JwtPayload ;
         req.userId = userId ;
         req.role = role ;
         next()
@@ -21,4 +21,14 @@ export const authMiddleware = async(req:Request,res:Response, next:NextFunction)
             "error":"Unauthorized, token missing or invalid"
         })
     }
+}
+
+export const teacherRoleMiddleware = (req:Request,res:Response,next:NextFunction)=>{
+    if(!req.role|| req.role!="teacher"){
+        return res.status(403).json({
+            "success":false,
+            "error":"Forbidden, teacher access required"
+        })
+    }
+    next()
 }

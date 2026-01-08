@@ -1,9 +1,9 @@
 import express from "express";
-import { SignupSchema, SingInSchema } from "./types.js";
-import { UserModel } from "./models.js";
+import { CreateClassSchema, SignupSchema, SingInSchema } from "./types.js";
+import { ClassModel, UserModel } from "./models.js";
 import mongoose, { mongo } from "mongoose";
 import jwt from "jsonwebtoken";
-import { authMiddleware } from "./middleware.js";
+import { authMiddleware, teacherRoleMiddleware } from "./middleware.js";
 const app = express();
 
 app.use(express.json());
@@ -78,10 +78,29 @@ app.post("/auth/login", async (req, res) => {
 
 app.post("/auth/me", authMiddleware, async (req, res) => {
   const user = await UserModel.findOne({ _id: req.userId });
-    if (!user) {
+  if (!user) {
     return res.status(404).json({
       success: false,
       error: "User not found",
+    });
+    res.json({
+      success: true,
+      data: {
+        _id: user?._id,
+        name: user?.name,
+        email: user?.email,
+        role: user?.role,
+      },
+    });
+  }
+});
+
+app.post("/class", authMiddleware, teacherRoleMiddleware, async (req, res) => {
+  const { success, data } = CreateClassSchema.safeParse(req.body);
+  if (!success) {
+    return res.status(400).json({
+      success: false,
+      error: "Invalid request schema",
     });
   }
 });

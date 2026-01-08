@@ -11,3 +11,7 @@ export const SingInSchema = z.object({
     email:z.email(),
     password:z.string()
 })
+
+export const CreateClassSchema = z.object({
+    className:z.string()
+})
