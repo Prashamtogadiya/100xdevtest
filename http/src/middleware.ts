@@ -1,14 +1,14 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 export const authMiddleware = async(req:Request,res:Response, next:NextFunction)=>{
-    const token = req.headers.authorization ;
+    const token = req.headers.authorization?.split(" ")[1];
     if(!token){
         return res.status(401).json({
             "success":false,
             "error":"Unauthorized, token missing or invalid"
         })
     }
-    console.log(typeof token );
+    console.log(typeof req.headers.authorization );
     
     try{
         const {userId,role}= await jwt.verify(token,process.env.JWT_SECRETKEY!) as JwtPayload ;
