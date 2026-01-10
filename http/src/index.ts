@@ -1,7 +1,12 @@
 import express from "express";
-import { CreateClassSchema, SignupSchema, SingInSchema } from "./types.js";
+import {
+  AddStudentSchema,
+  CreateClassSchema,
+  SignupSchema,
+  SingInSchema,
+} from "./types.js";
 import { ClassModel, UserModel } from "./models.js";
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import { authMiddleware, teacherRoleMiddleware } from "./middleware.js";
 const app = express();
@@ -103,7 +108,72 @@ app.post("/class", authMiddleware, teacherRoleMiddleware, async (req, res) => {
       error: "Invalid request schema",
     });
   }
+
+  const classDb = await ClassModel.create({
+    className: data.className,
+    teacherId: req.userId as string,
+    studentIds: [],
+  });
+  res.json({
+    success: true,
+    data: {
+      _id: classDb._id,
+      className: classDb.className,
+      teacherId: classDb.teacherId,
+      studentIds: [],
+    },
+  });
 });
+
+app.post(
+  "/class/:id/add-student",
+  authMiddleware,
+  teacherRoleMiddleware,
+  async (req, res) => {
+    const { success, data } = AddStudentSchema.safeParse(req.body);
+    if (!success) {
+      return res.json({
+        success: false,
+        error: "Invalid request schema",
+      });
+    }
+
+    const studentId = data.studentId;
+    const classDb = await ClassModel.findOne({
+      _id: req.params._id,
+    });
+
+    if (!classDb) {
+      return res.status(404).json({
+        success: false,
+        error: "Class not found",
+      });
+    }
+    const userDb = await UserModel.findOne({
+      _id: studentId,
+    });
+
+    if (!userDb) {
+      return res.status(404).json({
+        success: false,
+        error: "Student not found",
+      });
+    }
+
+    classDb.studentIds.push(new mongoose.Types.ObjectId(studentId));
+    await classDb.save();
+
+    res.json({
+      success: true,
+      data: {
+        _id: classDb._id,
+        className: classDb.className,
+        teacherId: classDb.teacherId,
+        studentIds: classDb.studentIds,
+      },
+    });
+  }
+);
 
 app.listen(3000, () => {
   console.log("server started on port 3000");

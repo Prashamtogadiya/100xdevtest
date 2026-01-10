@@ -32,6 +32,7 @@ const AttendanceSchema = new mongoose.Schema({
 
 })
 
+
 export const UserModel = mongoose.model("Users",UserSchema)
 export const ClassModel = mongoose.model("Class",ClassSchema)
 export const AttendanceModel = mongoose.model("Attendance",AttendanceSchema)
